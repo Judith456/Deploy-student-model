@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>🚴 Cycling AI</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #0b0f14;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+    }
+
+    /* Upload */
+    .upload-box {
+      border: 2px dashed #2a2f3a;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      margin-top: 20px;
+      cursor: pointer;
+      background: #11161c;
+      transition: 0.3s;
+    }
+
+    .upload-box:hover {
+      border-color: #00ff88;
+      background: #0f1a14;
+    }
+
+    video {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 12px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(90deg, #00ff88, #00ccff);
+      color: black;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Verdict */
+    .verdict {
+      margin-top: 40px;
+      padding: 30px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #1a1f2b, #0f141b);
+    }
+
+    .verdict h2 {
+      font-size: 48px;
+      margin: 0;
+    }
+
+    .good { color: #00ff88; }
+    .avg { color: #ffb347; }
+    .poor { color: #ff4d4d; }
+
+    /* Probabilities */
+    .prob-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .prob-card {
+      flex: 1;
+      background: #11161c;
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .bar {
+      height: 6px;
+      border-radius: 10px;
+      background: #2a2f3a;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+    }
+
+    /* Features */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .card {
+      background: #11161c;
+      padding: 20px;
+      border-radius: 14px;
+    }
+
+    .card h4 {
+      margin: 0;
+      font-size: 13px;
+      color: #888;
+    }
+
+    .value {
+      font-size: 22px;
+      margin-top: 8px;
+    }
+
+    /* Tips */
+    .tips {
+      margin-top: 30px;
+      background: #11161c;
+      padding: 20px;
+      border-radius: 14px;
+    }
+
+    /* Loader */
+    .loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(11, 15, 20, 0.9);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: 0.3s;
+    }
+
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #2a2f3a;
+      border-top: 5px solid #00ff88;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loader-content {
+      text-align: center;
+    }
+
+    .loader h2 {
+      margin-top: 20px;
+    }
+
+    .loader p {
+      color: #aaa;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🚴 Cycling Form Analyzer</h1>
+
+  <div class="upload-box" id="dropZone">
+    Click To Upload Video
+    <input type="file" id="fileInput" hidden>
+  </div>
+
+  
+
+  <button onclick="upload()">Analyze</button>
+
+  <div id="result"></div>
+</div>
+
+<!-- Loader -->
+<div id="loader" class="loader hidden">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <h2>Analyzing your cycling form...</h2>
+    <p>This may take a few seconds</p>
+  </div>
+</div>
+
+<script>
+let file;
+
+const dropZone = document.getElementById("dropZone");
+
+dropZone.onclick = () => document.getElementById("fileInput").click();
+
+dropZone.ondrop = (e) => {
+  e.preventDefault();
+  file = e.dataTransfer.files[0];
+  preview();
+};
+
+dropZone.ondragover = (e) => e.preventDefault();
+
+document.getElementById("fileInput").onchange = (e) => {
+  file = e.target.files[0];
+  preview();
+};
+
+function preview() {
+  document.getElementById("video").src = URL.createObjectURL(file);
+}
+
+function showLoader() {
+  document.getElementById("loader").classList.remove("hidden");
+}
+
+function hideLoader() {
+  document.getElementById("loader").classList.add("hidden");
+}
+
+async function upload() {
+  if (!file) {
+    alert("Upload a video first");
+    return;
+  }
+
+  showLoader();
+
+  const form = new FormData();
+  form.append("file", file);
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/predict", {
+      method: "POST",
+      body: form
+    });
+
+    const data = await res.json();
+    render(data);
+  } catch (err) {
+    alert("Error: " + err);
+  } finally {
+    hideLoader();
+  }
+}
+
+function color(v) {
+  if (v > 0.7) return "#00ff88";
+  if (v > 0.4) return "#ffb347";
+  return "#ff4d4d";
+}
+
+function render(d) {
+  const c = d.prediction === "Good" ? "good" :
+            d.prediction === "Average" ? "avg" : "poor";
+
+  document.getElementById("result").innerHTML = `
+    <div class="verdict">
+      <h2 class="${c}">${d.emoji} ${d.prediction}</h2>
+      <p>Confidence: ${d.confidence}%</p>
+
+      <div class="prob-row">
+        ${Object.entries(d.probabilities).map(([k,v]) => `
+          <div class="prob-card">
+            ${k} ${v}%
+            <div class="bar">
+              <div class="bar-fill" style="width:${v}%;background:${color(v/100)}"></div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <h3 style="margin-top:30px;">Biomechanical Features</h3>
+
+    <div class="grid">
+      ${Object.entries(d.features).map(([k,v]) => `
+        <div class="card">
+          <h4>${k.replace("_"," ")}</h4>
+          <div class="value" style="color:${color(v)}">${Math.round(v*100)}%</div>
+          <div class="bar">
+            <div class="bar-fill" style="width:${v*100}%;background:${color(v)}"></div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="tips">
+      <h3>Coaching Tips</h3>
+      ${d.coaching_tips.map(t => `<p>• ${t}</p>`).join("")}
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>

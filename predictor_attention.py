@@ -3,13 +3,14 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-import tensorflow as tf
+import keras
 import os
 from mediapipe.tasks import python
 from mediapipe.tasks.python.vision import (
     PoseLandmarker, PoseLandmarkerOptions)
 from mediapipe.tasks.python.vision.core.vision_task_running_mode import (
     VisionTaskRunningMode)
+from keras.models import load_model
 
 # ============================================================
 # CONSTANTS
@@ -31,7 +32,7 @@ POSE_PATH  = os.path.join(BASE_DIR, "models", "pose_landmarker.task")
 # LOAD MODEL
 # ============================================================
 print("Loading Attention Student...")
-attention_model = tf.keras.models.load_model(MODEL_PATH)
+attention_model = load_model(MODEL_PATH)
 print(f"✅ Loaded — {attention_model.count_params():,} params")
 
 # ============================================================

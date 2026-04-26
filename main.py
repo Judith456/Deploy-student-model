@@ -61,6 +61,11 @@ async def predict_video(
             status_code=400,
             detail=f"Use: {allowed}")
 
+    if file.size and file.size > 20_000_000:
+        raise HTTPException(
+            status_code=400,
+            detail="File too large (max 20MB)")
+
     with tempfile.NamedTemporaryFile(
             delete=False,
             suffix=ext) as tmp:
