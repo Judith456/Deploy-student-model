@@ -31,8 +31,26 @@ POSE_PATH  = os.path.join(BASE_DIR, "models", "pose_landmarker.task")
 # ============================================================
 # LOAD MODEL
 # ============================================================
+# ============================================================
+# LOAD MODEL
+# ============================================================
+from keras.layers import MultiHeadAttention as _MHA
+
+class _CompatMHA(_MHA):
+    def __init__(self, **kwargs):
+        kwargs.pop('seed', None)
+        super().__init__(**kwargs)
+
+    @classmethod
+    def from_config(cls, config):
+        config.pop('seed', None)
+        return cls(**config)
+
 print("Loading Attention Student...")
-attention_model = load_model(MODEL_PATH)
+attention_model = load_model(
+    MODEL_PATH,
+    custom_objects={'MultiHeadAttention': _CompatMHA}
+)
 print(f"✅ Loaded — {attention_model.count_params():,} params")
 
 # ============================================================
