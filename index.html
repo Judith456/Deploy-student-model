@@ -254,7 +254,7 @@ async function upload() {
   form.append("file", file);
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/predict", {
+    const res = await fetch("https://your-render-url.onrender.com/predict", {
       method: "POST",
       body: form
     });
