@@ -11,6 +11,7 @@ from mediapipe.tasks.python.vision import (
 from mediapipe.tasks.python.vision.core.vision_task_running_mode import (
     VisionTaskRunningMode)
 from keras.models import load_model
+from keras.layers import MultiHeadAttention as _MHA
 
 # ============================================================
 # CONSTANTS
@@ -34,7 +35,7 @@ POSE_PATH  = os.path.join(BASE_DIR, "models", "pose_landmarker.task")
 # ============================================================
 # LOAD MODEL
 # ============================================================
-from keras.layers import MultiHeadAttention as _MHA
+
 
 class _CompatMHA(_MHA):
     def __init__(self, **kwargs):
