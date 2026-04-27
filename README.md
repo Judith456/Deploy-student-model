@@ -1,8 +1,8 @@
 ---
 title: Cycling Form AI
-emoji: ??
+emoji: U+1F6B4
 colorFrom: green
-colorTo: black
+colorTo: gray
 sdk: docker
 pinned: false
 ---
